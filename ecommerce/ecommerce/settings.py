@@ -347,10 +347,21 @@ LOGGING = {
             'filename': os.path.join(BASE_DIR, 'logs', 'shop.log'),
         },
         'console': {
-            'level': 'INFO',
+            'level': 'ERROR',  # 只输出ERROR及以上级别，避免日志冗余
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        # 2. 文件日志（保留，本地可查）
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'shop.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],  # 同时输出到控制台和文件
+        'level': 'INFO',
     },
     'loggers': {
         'django': {
