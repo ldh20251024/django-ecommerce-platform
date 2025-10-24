@@ -131,14 +131,11 @@ if DEBUG:
 else:
     # 生产环境：PostgreSQL（Render 托管）
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DB_NAME'),
-            'USER': os.environ.get('DB_USER'),
-            'PASSWORD': os.environ.get('DB_PASSWORD'),
-            'HOST': os.environ.get('DB_HOST'),
-            'PORT': '5432',
-        }
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),  # 从环境变量获取连接信息
+            conn_max_age=600,  # 连接池保持时间，提升性能
+            ssl_require=True  # Render PostgreSQL 要求 SSL 连接（关键！）
+        )
     }
 
 # 缓存配置（使用内存缓存）
