@@ -34,18 +34,18 @@ def merge_carts(session_cart, user):
                     cart_item.save()
 
                 merged_items += 1
-                print(f"✅ 合并商品: {product.name} x {quantity}")
+                # print(f"✅ 合并商品: {product.name} x {quantity}")
 
             except Product.DoesNotExist:
-                print(f"❌ 商品 {product_id} 不存在，跳过")
+                # print(f"❌ 商品 {product_id} 不存在，跳过")
                 continue
             except Exception as e:
-                print(f"❌ 合并商品 {product_id} 时出错: {e}")
+                # print(f"❌ 合并商品 {product_id} 时出错: {e}")
                 continue
 
-        print(f"🎉 购物车合并完成，共合并 {merged_items} 个商品")
+        # print(f"🎉 购物车合并完成，共合并 {merged_items} 个商品")
         return user_cart
 
     except Exception as e:
-        print(f"❌ 购物车合并失败: {e}")
+        # print(f"❌ 购物车合并失败: {e}")
         return None

@@ -39,7 +39,7 @@ def user_login(request):
     if not next_url:
         next_url = reverse('accounts:dashboard')  # 默认重定向到用户中心
 
-    print(f"DEBUG: next_url = {next_url}")  # 调试信息
+    # print(f"DEBUG: next_url = {next_url}")  # 调试信息
 
     if request.method == 'POST':
         form = UserLoginForm(request.POST)
@@ -47,15 +47,11 @@ def user_login(request):
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
-            print("user:", username)
-            print("password:", password)
-            print("user:",user)
             if user is not None:
                 login(request, user)
                 messages.success(request, f'欢迎回来，{username}！')
 
                 # 确保重定向到正确的URL
-                print(f"DEBUG: 登录成功，重定向到: {next_url}")  # 调试信息
                 return redirect(next_url)
             else:
                 messages.info(request, '用户名或密码错误。')

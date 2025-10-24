@@ -44,8 +44,9 @@ def payment_options(request, order_id):
 
         # 对于货到付款，可以添加额外的确认参数（可选）
         if payment_method == 'cod' and not request.POST.get('confirmed'):
+            pass
             # 这里可以记录日志或进行其他处理
-            print(f"用户选择了货到付款，但未经过前端确认 - 订单 #{order.id}")
+            # print(f"用户选择了货到付款，但未经过前端确认 - 订单 #{order.id}")
             # 我们仍然处理，因为前端已经有确认对话框
 
         if payment_method == 'stripe':
@@ -127,23 +128,23 @@ def stripe_checkout(request, order_id):
 @login_required
 def create_stripe_payment_intent(request, order_id):
     """创建Stripe支付意向 - 增强错误日志"""
-    print(f"=== 创建Stripe支付意向请求 ===")
-    print(f"订单ID: {order_id}")
-    print(f"用户: {request.user}")
+    # print(f"=== 创建Stripe支付意向请求 ===")
+    # print(f"订单ID: {order_id}")
+    # print(f"用户: {request.user}")
 
     if request.method == 'POST':
         try:
             order = _get_order(order_id, request.user)
-            print(f"找到订单: #{order.id}, 金额: {order.get_total_cost()}")
+            # print(f"找到订单: #{order.id}, 金额: {order.get_total_cost()}")
         except Order.DoesNotExist:
-            print(f"❌ 订单不存在: {order_id}")
+            # print(f"❌ 订单不存在: {order_id}")
             return JsonResponse({
                 'error': '订单不存在'
             }, status=400)
 
         # 检查订单是否已支付
         if order.is_paid:
-            print(f"❌ 订单已支付: #{order.id}")
+            # print(f"❌ 订单已支付: #{order.id}")
             return JsonResponse({
                 'error': '该订单已支付，无法重复支付'
             }, status=400)
@@ -161,25 +162,25 @@ def create_stripe_payment_intent(request, order_id):
             # )
             payment, created = _get_payment(order, request.user, 'stripe', 'pending')
 
-            print(f"支付记录: {'创建' if created else '已存在'} - ID: {payment.id}")
+            # print(f"支付记录: {'创建' if created else '已存在'} - ID: {payment.id}")
 
             # 检查Stripe配置
             stripe_secret_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
             if not stripe_secret_key:
-                print("❌ Stripe密钥未配置")
+                # print("❌ Stripe密钥未配置")
                 return JsonResponse({
                     'error': '支付系统配置错误，请联系管理员'
                 }, status=500)
 
-            print(f"Stripe密钥: {stripe_secret_key[:20]}...")
+            # print(f"Stripe密钥: {stripe_secret_key[:20]}...")
 
             # 检查金额
             amount = order.get_total_cost()
             amount_in_cents = int(amount * 100)
-            print(f"支付金额: {amount}元 = {amount_in_cents}分")
+            # print(f"支付金额: {amount}元 = {amount_in_cents}分")
 
             if amount <= 0:
-                print("❌ 金额无效")
+                # print("❌ 金额无效")
                 return JsonResponse({
                     'error': '订单金额无效'
                 }, status=400)
@@ -188,7 +189,7 @@ def create_stripe_payment_intent(request, order_id):
             stripe.api_key = stripe_secret_key
 
             # 创建Stripe支付意向
-            print("正在创建Stripe支付意向...")
+            # print("正在创建Stripe支付意向...")
             intent = stripe.PaymentIntent.create(
                 amount=amount_in_cents,
                 currency='cny',
@@ -199,7 +200,7 @@ def create_stripe_payment_intent(request, order_id):
                 }
             )
 
-            print(f"✅ Stripe支付意向创建成功: {intent.id}")
+            # print(f"✅ Stripe支付意向创建成功: {intent.id}")
 
             # 更新支付记录的交易ID
             payment.transaction_id = intent.id
@@ -213,7 +214,7 @@ def create_stripe_payment_intent(request, order_id):
 
         except Exception as e:
             # 捕获所有异常，包括可能的Stripe异常
-            print(f"❌ 支付意向创建错误: {e}")
+            # print(f"❌ 支付意向创建错误: {e}")
             import traceback
             traceback.print_exc()
 
@@ -230,7 +231,7 @@ def create_stripe_payment_intent(request, order_id):
 
             return JsonResponse({'error': error_message}, status=400)
 
-    print("❌ 非POST请求")
+    # print("❌ 非POST请求")
     return JsonResponse({'error': '方法不允许'}, status=405)
 
 

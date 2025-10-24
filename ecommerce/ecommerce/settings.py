@@ -25,6 +25,8 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     'testserver',  # 添加这行以支持测试
+    # Render 部署后的默认域名（如 your-app.onrender.com）
+    os.environ.get('RENDER_HOST', ''),
 ]
 
 if not DEBUG:
@@ -45,7 +47,7 @@ INSTALLED_APPS = [
     'cart',
     'orders',
     'payment',
-    'sslserver',  # 支持 HTTPS 启动
+    # 'sslserver',  # 支持 HTTPS 启动，生产环境无需
 ]
 
 # 中间件
@@ -102,30 +104,43 @@ TEMPLATES = [
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-DATABASES = {#数据库配置。此处使用数据库为本机的mysql
-    'default': {
-        # 'ENGINE': 'django.db.backends.mysql',
-        'ENGINE': 'dj_db_conn_pool.backends.mysql',  # 替换为连接池引擎
-        'NAME': "djangoEcommerce",
-        'USER': "root",
-        # 'PASSWORD': "password",
-        'PASSWORD': os.environ.get('DB_PASSWORD'),  # 建议从环境变量获取密码
-        'HOST': "localhost",
-        'PORT': "3306",
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',
-        },
-        'POOL_OPTIONS': {  # 连接池配置
-            'POOL_SIZE': 20,  # 连接池大小
-            'MAX_OVERFLOW': 10,  # 最大溢出连接数
-            'RECYCLE': 300,  # 连接回收时间（秒）
-        },
-        # 连接池配置（如果需要）
-        'CONN_MAX_AGE': 60,  # 保持数据库连接 60 秒
-        'TIME_ZONE': 'Asia/Shanghai',  # 为数据库连接设置时区
+if DEBUG:
+    DATABASES = {#数据库配置。此处使用数据库为本机的mysql
+        'default': {
+            # 'ENGINE': 'django.db.backends.mysql',
+            'ENGINE': 'dj_db_conn_pool.backends.mysql',  # 替换为连接池引擎
+            'NAME': "djangoEcommerce",
+            'USER': "root",
+            # 'PASSWORD': "password",
+            'PASSWORD': os.environ.get('DB_PASSWORD'),  # 建议从环境变量获取密码
+            'HOST': "localhost",
+            'PORT': "3306",
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+                'charset': 'utf8mb4',
+            },
+            'POOL_OPTIONS': {  # 连接池配置
+                'POOL_SIZE': 20,  # 连接池大小
+                'MAX_OVERFLOW': 10,  # 最大溢出连接数
+                'RECYCLE': 300,  # 连接回收时间（秒）
+            },
+            # 连接池配置（如果需要）
+            'CONN_MAX_AGE': 60,  # 保持数据库连接 60 秒
+            'TIME_ZONE': 'Asia/Shanghai',  # 为数据库连接设置时区
+        }
     }
-}
+else:
+    # 生产环境：PostgreSQL（Render 托管）
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME'),
+            'USER': os.environ.get('DB_USER'),
+            'PASSWORD': os.environ.get('DB_PASSWORD'),
+            'HOST': os.environ.get('DB_HOST'),
+            'PORT': '5432',
+        }
+    }
 
 # 缓存配置（使用内存缓存）
 CACHES = {
@@ -188,9 +203,36 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles')]
 STATIC_URL = '/static/'  # 访问静态资源的 URL 前缀
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')  # 静态资源收集的目标目录（绝对路径）
 
-# 媒体文件配置
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# 导入 Cloudinary 存储后端
+from cloudinary_storage.storage import MediaCloudinaryStorage
+
+# --------------------------
+# 1. 基础配置：添加 Cloudinary 到 INSTALLED_APPS
+# --------------------------
+INSTALLED_APPS += [
+    'cloudinary',
+    'cloudinary_storage',
+]
+
+# --------------------------
+# 2. 媒体文件配置（核心）
+# --------------------------
+# 开发环境：用本地存储（方便调试）
+if DEBUG:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# 生产环境（Render）：用 Cloudinary 云存储
+else:
+    # 配置 Cloudinary 密钥（从环境变量获取）
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+        'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+        'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+    }
+    # 指定媒体文件的存储后端为 Cloudinary
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    # 媒体文件的 URL 前缀（Cloudinary 自动生成）
+    MEDIA_URL = '/media/'  # 无需手动写 Cloudinary 域名，集成包自动处理
 
 # 登录/登出重定向配置
 LOGIN_REDIRECT_URL = 'accounts:dashboard'  # 默认登录后重定向页面

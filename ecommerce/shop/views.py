@@ -121,7 +121,7 @@ def product_search(request):
     if query and paginator.count == 0: # 用paginator.count替代products.count()
         # 改进的相似分类查询
         similar_categories = get_similar_categories(query, all_categories_with_count)
-        print(f"改进后的相似分类: {[cat.name for cat in similar_categories]}")
+        # print(f"改进后的相似分类: {[cat.name for cat in similar_categories]}")
         from difflib import get_close_matches
         # 仅获取name字段，用values_list提升效率
         all_product_names = list(Product.objects.filter(
@@ -134,7 +134,7 @@ def product_search(request):
         # ).order_by('-created')[:1000].values_list('name', flat=True))
 
         similar_terms = get_close_matches(query, all_product_names, n=3, cutoff=0.3)
-        print('similar_terms:', similar_terms)
+        # print('similar_terms:', similar_terms)
         # 添加拼音转换建议
         pinyin_suggestions = get_pinyin_suggestions(query, all_product_names)
         similar_terms.extend(pinyin_suggestions)
@@ -164,7 +164,7 @@ def get_similar_categories(query, all_categories_with_count, max_results=3):
         pinyin_query = ''.join(pypinyin.lazy_pinyin(query)) if query else ''
         initials = ''.join([p[0] for p in pypinyin.lazy_pinyin(query) if p]) if query else ''
     except Exception as e:
-        print(f"拼音处理错误: {e}")
+        # print(f"拼音处理错误: {e}")
         pinyin_query = ''
         initials = ''
 
@@ -325,7 +325,7 @@ def get_pinyin_suggestions(query, product_names, max_suggestions=3):
     try:
         # 将查询词转换为拼音
         query_pinyin = ''.join(pypinyin.lazy_pinyin(query))
-        print(f"查询词拼音: {query_pinyin}")
+
 
         # 查找商品名称拼音中包含查询词拼音的商品
         for name in product_names:
@@ -338,7 +338,7 @@ def get_pinyin_suggestions(query, product_names, max_suggestions=3):
             except:
                 continue
 
-        print(f"拼音建议: {suggestions}")
+
 
     except Exception as e:
         print(f"拼音建议错误: {e}")
