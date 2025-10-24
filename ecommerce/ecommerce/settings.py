@@ -343,7 +343,8 @@ LOGGING = {
         'file': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': 'logs/shop.log',
+            # 关键修复：基于BASE_DIR生成绝对路径，确保Render中可找到
+            'filename': os.path.join(BASE_DIR, 'logs', 'shop.log'),
         },
         'console': {
             'level': 'INFO',
@@ -374,6 +375,10 @@ LOGGING = {
         },
     },
 }
+# 自动创建logs目录（关键：避免目录不存在的错误）
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR, exist_ok=True)  # exist_ok=True 避免重复创建报错
 
 # settings.py
 INSTALLED_APPS += ['compressor']  # 添加到已安装应用
