@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}订单详情 - 我的商店{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>订单详情</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>订单 #{{ order.id }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>收货信息</h5>
+                            <p>
+                                {{ order.first_name }} {{ order.last_name }}<br>
+                                {{ order.email }}<br>
+                                {{ order.address }}<br>
+                                {{ order.postal_code }} {{ order.city }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>订单信息</h5>
+                            <p>
+                                创建时间: {{ order.created|date:"Y-m-d H:i" }}<br>
+                                状态: {% if order.is_paid and not order.is_waiting and not order.is_refunded %}
+                                    已支付
+                                {% elif order.is_refunded %}
+                                    已退款
+                                {% elif order.is_waiting %}
+                                    待调货
+                                {% else %}
+                                    待支付
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <h5>订单商品</h5>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>商品</th>
+                                <th>单价</th>
+                                <th>数量</th>
+                                <th>小计</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items.all %}
+                                <tr>
+                                    <td>{{ item.product.name }}</td>
+                                    <td>¥{{ item.price }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>¥{{ item.get_cost }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-primary">
+                                <td colspan="3"><strong>总计</strong></td>
+                                <td><strong>¥{{ order.get_total_cost }}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 在订单详情页面添加支付部分 -->
+    {% if show_payment_button %}
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">支付订单</h5>
+            <p class="card-text">订单总金额: ${{ order.get_total_cost }}</p>
+            <a href="{% url 'payment:payment_options' order.id %}" class="btn btn-primary">立即支付</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title text-success">订单已支付</h5>
+            <p class="card-text">支付方式: {{ order.get_payment_method_display }}</p>
+            <!-- 新增退款按钮 -->
+            {% if not order.is_refunded %}
+            <a href="{% url 'orders:refund_request' order.id %}" class="btn btn-outline-danger">申请退款</a>
+            {% else %}
+            <div class="alert alert-info mt-3">
+                <h6>已退款</h6>
+                <p>退款金额: ¥{{ order.refund_amount }}</p>
+                <p>退款时间: {{ order.refund_date|date:"Y-m-d H:i" }}</p>
+                <p>退款原因: {{ order.refund_reason }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    <div class="mt-4">
+        <a href="{% url 'orders:order_list' %}" class="btn btn-secondary">返回订单列表</a>
+        <a href="{% url 'shop:product_list' %}" class="btn btn-primary">继续购物</a>
+    </div>
+</div>
+{% endblock %}

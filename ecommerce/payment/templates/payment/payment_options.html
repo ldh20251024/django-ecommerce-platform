@@ -1,0 +1,132 @@
+<!-- payment/templates/payment/payment_options.html -->
+{% extends "base.html" %}
+
+{% block title %}选择支付方式 - 订单 #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>选择支付方式</h2>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">订单详情</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>订单号:</strong> #{{ order.id }}</p>
+                    <p><strong>总金额:</strong> ¥{{ order.get_total_cost }}</p>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">选择支付方式</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="payment-options-form">
+                        {% csrf_token %}
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method"
+                                   id="stripe" value="stripe" checked>
+                            <label class="form-check-label" for="stripe">
+                                <i class="fab fa-cc-stripe"></i> 信用卡/借记卡支付
+                            </label>
+                            <small class="form-text text-muted d-block">
+                                支持Visa, MasterCard, American Express等主流信用卡
+                            </small>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method"
+                                   id="paypal" value="paypal">
+                            <label class="form-check-label" for="paypal">
+                                <i class="fab fa-paypal"></i> PayPal支付
+                            </label>
+                            <small class="form-text text-muted d-block">
+                                使用您的PayPal账户快速支付
+                            </small>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method"
+                                   id="cod" value="cod">
+                            <label class="form-check-label" for="cod">
+                                <i class="fas fa-money-bill-wave"></i> 货到付款
+                            </label>
+                            <small class="form-text text-muted d-block">
+                                收到商品时现金支付
+                            </small>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                                继续支付
+                            </button>
+                            <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-secondary">
+                                返回订单详情
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap模态框 -->
+<div class="modal fade" id="codConfirmationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">确认货到付款</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>请注意：</strong>选择货到付款后，订单将立即创建，您需要在收到商品时准备现金支付。
+                </div>
+                <p>订单详情：</p>
+                <ul>
+                    <li><strong>订单号：</strong> #{{ order.id }}</li>
+                    <li><strong>支付金额：</strong> ¥{{ order.get_total_cost }}</li>
+                    <li><strong>支付方式：</strong> 货到付款（现金）</li>
+                </ul>
+                <p class="text-muted">确认选择货到付款吗？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmCodPayment">确认支付</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('payment-options-form');
+    const codModal = new bootstrap.Modal(document.getElementById('codConfirmationModal'));
+
+    form.addEventListener('submit', function(event) {
+        const selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+
+        if (selectedPaymentMethod === 'cod') {
+            event.preventDefault();
+
+            // 显示Bootstrap模态框
+            codModal.show();
+        }
+    });
+
+    // 确认支付按钮事件
+    document.getElementById('confirmCodPayment').addEventListener('click', function() {
+        codModal.hide();
+        form.submit();
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}我的订单 - 我的商店{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>我的订单</h1>
+
+    {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>订单号</th>
+                        <th>收货人</th>
+                        <th>创建时间</th>
+                        <th>总金额</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.first_name }} {{ order.last_name }}</td>
+                            <td>{{ order.created|date:"Y-m-d H:i" }}</td>
+                            <td>¥{{ order.get_total_cost }}</td>
+                            <td>
+                                {% if order.is_paid and not order.is_waiting and not order.is_refunded %}
+                                    <span class="badge bg-success">已支付</span>
+                                {% elif order.is_refunded %}
+                                    <span class="badge bg-danger">已退款</span>
+                                {% elif order.is_waiting %}
+                                    <span class="badge bg-info">待调货
+                                {% else %}
+                                    <span class="badge bg-warning">待支付</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">查看详情</a>
+                                {% if not order.is_paid %}
+                                <a onclick="delete_order()" class="btn btn-sm btn-outline-primary">删除订单</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <!-- Bootstrap模态框 -->
+                        <div class="modal fade" id="deleteOrderConfirm" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">确认删除订单</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <strong>请注意：</strong>删除订单后，订单不可恢复
+                                        </div>
+                                        <p>订单详情：</p>
+                                        <ul>
+                                            <li><strong>订单号：</strong> #{{ order.id }}</li>
+                                            <li><strong>支付金额：</strong> ¥{{ order.get_total_cost }}</li>
+                                        </ul>
+                                        <p class="text-muted">确认删除订单吗？</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button onclick="modalHide" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                        <a href="{% url 'orders:order_delete' order.id %}" class="btn btn-primary" >确认</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <h4>您还没有任何订单</h4>
+            <p>请浏览我们的<a href="{% url 'shop:product_list' %}">商品列表</a>来创建您的第一个订单。</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function delete_order(){
+    const Modal = new bootstrap.Modal(document.getElementById('deleteOrderConfirm'));
+    Modal.show();
+}
+
+function modalHide(){
+    const Modal = new bootstrap.Modal(document.getElementById('deleteOrderConfirm'));
+    Modal.hide();
+}
+
+
+</script>
+{% endblock %}

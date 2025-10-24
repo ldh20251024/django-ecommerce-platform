@@ -1,0 +1,201 @@
+<!-- payment/templates/payment/stripe_checkout.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}信用卡支付 - 订单 #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">信用卡支付</h4>
+                </div>
+                <div class="card-body">
+                    <div class="order-summary mb-4">
+                        <h5>订单详情</h5>
+                        <p><strong>订单号:</strong> #{{ order.id }}</p>
+                        <p><strong>支付金额:</strong> ¥{{ order.get_total_cost }}</p>
+                    </div>
+
+                    {% if stripe_publishable_key %}
+                    <form id="payment-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="card-element">信用卡信息</label>
+                            <div id="card-element" class="form-control p-3" style="height: 50px;">
+                                <!-- Stripe Elements will create form elements here -->
+                            </div>
+                            <div id="card-errors" role="alert" class="text-danger mt-2"></div>
+                        </div>
+
+                        <button id="submit-button" class="btn btn-primary btn-lg btn-block mt-3" style="width: 100%">
+                            <span id="button-text">立即支付 ¥{{ order.get_total_cost }}</span>
+                            <span id="button-spinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        </button>
+                    </form>
+{#                    <form method="post" action="{% url 'payment:payment_cancel' order.id %}">#}
+{#                        {% csrf_token %}#}
+{#                        <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top: -75px; margin-left: 387px">#}
+{#                            取消支付#}
+{#                        </button>#}
+{#                    </form>#}
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <p>Stripe支付暂未配置，请联系管理员。</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'payment:payment_options' order.id %}" class="btn btn-secondary">
+                            选择其他支付方式
+                        </a>
+                        <a href="{% url 'payment:payment_cancel' order.id %}" class="btn btn-secondary">
+                            取消支付
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 调试信息 - 检查模板变量是否正确传递
+    console.log('🔧 调试信息:');
+    console.log('Stripe Publishable Key:', '{{ stripe_publishable_key }}');
+    console.log('Order ID:', '{{ order.id }}');
+    console.log('Order Total:', '{{ order.get_total_cost }}');
+</script>
+
+{% if stripe_publishable_key %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    // 初始化Stripe
+    const stripe = Stripe('{{ stripe_publishable_key }}');
+    console.log('Stripe对象已创建:', stripe !== undefined);
+
+    // 创建Elements实例
+    const elements = stripe.elements();
+
+    // 创建卡片元素
+    const card = elements.create('card', {
+        style: {
+            base: {
+                fontSize: '16px',
+                color: '#424770',
+                fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+                fontSmoothing: 'antialiased',
+                '::placeholder': {
+                    color: '#aab7c4',
+                },
+            },
+            invalid: {
+                color: '#9e2146',
+            },
+        },
+    });
+
+    // 挂载卡片元素到DOM
+    card.mount('#card-element');
+    console.log('卡片元素已挂载');
+
+    // 监听卡片输入变化
+    card.on('change', ({error}) => {
+        const displayError = document.getElementById('card-errors');
+        if (error) {
+            displayError.textContent = error.message;
+            console.log('卡片错误:', error.message);
+        } else {
+            displayError.textContent = '';
+        }
+    });
+
+    // 处理表单提交
+    const form = document.getElementById('payment-form');
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        console.log('🔄 开始支付流程...');
+
+        const submitButton = document.getElementById('submit-button');
+        const buttonText = document.getElementById('button-text');
+        const buttonSpinner = document.getElementById('button-spinner');
+        const cardErrors = document.getElementById('card-errors');
+
+        // 更新按钮状态
+        submitButton.disabled = true;
+        buttonText.classList.add('d-none');
+        buttonSpinner.classList.remove('d-none');
+        cardErrors.textContent = '';
+
+        try {
+            console.log('1. 正在创建支付意向...');
+
+            // 创建支付意向
+            const response = await fetch('{% url "payment:create_stripe_payment_intent" order.id %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+
+            console.log('2. 服务器响应状态:', response.status);
+
+            if (!response.ok) {
+                throw new Error(`HTTP错误! 状态码: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('3. 服务器返回数据:', data);
+
+            const {clientSecret, error} = data;
+
+            if (error) {
+                console.error('4. 服务器返回错误:', error);
+                throw new Error(error);
+            }
+
+            if (!clientSecret) {
+                console.error('5. 缺少clientSecret');
+                throw new Error('支付配置错误，请稍后重试');
+            }
+
+            console.log('6. 正在确认支付...');
+
+            // 确认支付
+            const {error: stripeError, paymentIntent} = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: {
+                    card: card
+                }
+            });
+
+            console.log('7. Stripe确认结果:', { stripeError, paymentIntent });
+
+            if (stripeError) {
+                console.error('8. Stripe支付错误:', stripeError);
+                throw new Error(stripeError.message);
+            }
+
+            console.log('9. 支付成功，正在重定向...');
+
+            // 支付成功，重定向到成功页面
+            window.location.href = "{% url 'payment:stripe_payment_success' order.id %}";
+
+        } catch (error) {
+            console.error('❌ 支付流程错误:', error);
+            cardErrors.textContent = error.message || '支付过程中发生错误，请稍后重试';
+
+            // 恢复按钮状态
+            submitButton.disabled = false;
+            buttonText.classList.remove('d-none');
+            buttonSpinner.classList.add('d-none');
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

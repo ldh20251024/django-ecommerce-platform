@@ -1,0 +1,32 @@
+<!-- payment/templates/payment/payment_success.html -->
+{% extends "base.html" %}
+
+{% block title %}支付成功 - 订单 #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card">
+                <div class="card-body py-5">
+                    <div class="text-success mb-4">
+                        <i class="fas fa-check-circle fa-5x"></i>
+                    </div>
+                    <h2 class="card-title mb-3">支付成功!</h2>
+                    <p class="card-text mb-2">感谢您的购买。您的订单 <strong>#{{ order.id }}</strong> 已支付成功。</p>
+                    <p class="card-text text-muted">我们将尽快处理您的订单，并通过邮件通知您发货状态。</p>
+
+                    <div class="mt-4">
+                        <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-primary btn-lg">
+                            查看订单详情
+                        </a>
+                        <a href="{% url 'shop:product_list' %}" class="btn btn-outline-secondary">
+                            继续购物
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

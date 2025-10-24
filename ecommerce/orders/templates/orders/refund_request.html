@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}申请退款 - 我的商店{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>申请退款</h1>
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>订单信息 #{{ order.id }}</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>订单总金额:</strong> ¥{{ order.get_total_cost }}</p>
+            <p><strong>支付方式:</strong> {{ order.get_payment_method_display }}</p>
+            <p><strong>下单时间:</strong> {{ order.created|date:"Y-m-d H:i" }}</p>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>退款信息</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'orders:process_refund' order.id %}">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="{{ form.amount.id_for_label }}" class="form-label">{{ form.amount.label }}</label>
+                    {{ form.amount }}
+                    {% if form.amount.errors %}
+                        <div class="text-danger">
+                            {{ form.amount.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.reason.id_for_label }}" class="form-label">{{ form.reason.label }}</label>
+                    {{ form.reason }}
+                    {% if form.reason.errors %}
+                        <div class="text-danger">
+                            {{ form.reason.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>注意:</strong> 退款申请提交后，将在1-3个工作日内处理，资金将原路返回您的支付账户。
+                </div>
+
+                <button type="submit" class="btn btn-primary">提交退款申请</button>
+                <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-secondary">取消</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+{% load compress %}
+
+{% block title %}{{ category.name }} - 电商平台{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- 侧边栏筛选 -->
+        <div class="col-md-3 col-lg-2 d-none d-md-block bg-light sidebar">
+            <div class="position-sticky pt-3">
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>商品筛选</span>
+                </h6>
+
+                <form method="get" id="filter-form">
+                    <!-- 价格筛选 -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">价格范围</h6>
+                        </div>
+                        <div class="card-body">
+                            {{ filter_form.price_range }}
+
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    {{ filter_form.min_price }}
+                                </div>
+                                <div class="col-6">
+                                    {{ filter_form.max_price }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 库存筛选 -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="form-check">
+                                {{ filter_form.in_stock }}
+                                <label class="form-check-label" for="{{ filter_form.in_stock.id_for_label }}">
+                                    {{ filter_form.in_stock.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 排序 -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">排序方式</h6>
+                        </div>
+                        <div class="card-body">
+                            {{ filter_form.sort_by }}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">应用筛选</button>
+                    <a href="{% url 'shop:category_products' category.slug %}" class="btn btn-outline-secondary w-100 mt-2">重置筛选</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <!-- 分类标题 -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'shop:product_list' %}">首页</a></li>
+                            <li class="breadcrumb-item active">{{ category.name }}</li>
+                        </ol>
+                    </nav>
+
+                    <h2>{{ category.name }}</h2>
+                    {% if category.description %}
+                        <p class="text-muted">{{ category.description }}</p>
+                    {% endif %}
+                    <p class="text-muted">共找到 {{ total_products }} 个商品</p>
+                </div>
+            </div>
+
+            <!-- 商品网格 -->
+            <div class="row mt-4">
+                {% for product in page_obj %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100 product-card">
+                        <a href="{% url 'shop:product_detail' product.slug %}">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                                {% compress css %}
+                                <img src="{% static 'images/placeholder.jpg' %}" class="card-img-top" alt="暂无图片" style="height: 200px; object-fit: cover;">
+                                {% endcompress %}
+                            {% endif %}
+                        </a>
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">
+                                <a href="{% url 'shop:product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                    {{ product.name }}
+                                </a>
+                            </h6>
+                            <p class="card-text text-muted small flex-grow-1">
+                                {{ product.description|truncatewords:15 }}
+                            </p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h5 text-primary mb-0">¥{{ product.price }}</span>
+                                    {% if product.stock_quantity > 0 %}
+                                        <span class="badge bg-success">有货</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">缺货</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">销量: {{ product.sales }}</small>
+                                    <small class="text-warning">
+                                        <i class="fas fa-star"></i>
+                                        {{ product.rating|default:"0.0" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">该分类下暂无商品</h4>
+                    <a href="{% url 'shop:product_list' %}" class="btn btn-primary">返回首页</a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 分页 -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">&laquo; 首页</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">上一页</a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">下一页</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">末页 &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 自动提交表单当筛选条件改变时
+    $('.form-select, .form-check-input').change(function() {
+        $('#filter-form').submit();
+    });
+
+    // 价格输入框回车提交
+    $('input[type="number"]').keypress(function(e) {
+        if (e.which == 13) {
+            $('#filter-form').submit();
+        }
+    });
+});
+</script>
+{% endblock %}

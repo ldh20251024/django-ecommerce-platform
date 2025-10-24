@@ -1,0 +1,16 @@
+[req]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no  # 不交互，直接用配置
+
+[req_distinguished_name]
+CN = localhost  # 通用名（可自定义，如 127.0.0.1）
+
+[v3_req]
+keyUsage = critical, digitalSignature, keyAgreement
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names  # 引用 SAN 配置
+
+[alt_names]
+IP.1 = 127.0.0.1  # 关键：添加 IP 地址 SAN
+DNS.1 = localhost  # 可选：同时支持 localhost

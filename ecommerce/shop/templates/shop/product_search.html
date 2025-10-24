@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load compress %}
+{% load shop_filters %}  <!-- 加载自定义过滤器 -->
+{% load shop_tags %}     <!-- 加载自定义标签 -->
+
+{% block title %}搜索商品 - 电商平台{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- 侧边栏筛选 -->
+        <div class="col-md-3 col-lg-3 d-none d-md-block bg-light sidebar">
+            <div class="position-sticky pt-3">
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>商品筛选</span>
+                </h6>
+
+                <form method="get" id="filter-form">
+                    <!-- 隐藏搜索字段 -->
+                    <input type="hidden" name="q" value="{{ query }}">
+
+                    <!-- 分类筛选 -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">商品分类</h6>
+                        </div>
+                        <div class="card-body">
+                            {{ filter_form.category }}
+                        </div>
+                    </div>
+
+                    <!-- 价格筛选 -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">价格范围</h6>
+                        </div>
+                        <div class="card-body">
+                            {{ filter_form.price_range }}
+
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    {{ filter_form.min_price }}
+                                </div>
+                                <div class="col-6">
+                                    {{ filter_form.max_price }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 评分筛选 -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">评分范围</h6>
+                        </div>
+                        <div class="card-body">
+                            {{ filter_form.min_rating }}
+                        </div>
+                    </div>
+
+                    <!-- 库存筛选 -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="form-check">
+                                {{ filter_form.in_stock }}
+                                <label class="form-check-label" for="{{ filter_form.in_stock.id_for_label }}">
+                                    {{ filter_form.in_stock.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 排序 -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">排序方式</h6>
+                        </div>
+                        <div class="card-body">
+                            {{ filter_form.sort_by }}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">应用筛选</button>
+                    <a href="?q={{ query }}" class="btn btn-outline-secondary w-100 mt-2">重置筛选</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <main class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
+            <!-- 搜索栏 -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <form method="get" class="d-flex">
+                        <div class="input-group">
+                            {{ search_form.q }}
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="fas fa-search"></i> 搜索
+                            </button>
+                        </div>
+                    </form>
+                    {#  搜索历史 #}
+                    {% if request.session.search_history %}
+                    <div class="search-history mb-3">
+                        <small class="text-muted">搜索历史：</small>
+                        {% for term in request.session.search_history %}
+                        <a href="?q={{ term|urlencode }}" class="badge bg-light text-dark me-1 text-decoration-none">{{ term }}</a>
+                        {% endfor %}
+                        <a href="{% url 'shop:clear_search_history' %}" class="text-muted small ms-2">清除历史</a>
+                    </div>
+                    {% endif %}
+                    <!-- 热门搜索 -->
+                    {% if popular_searches %}
+                    <div class="popular-searches mb-3">
+                        <small class="text-muted">热门搜索：</small>
+                        {% for search in popular_searches %}
+                        <a href="?q={{ search.query|urlencode }}" class="badge bg-primary me-1 text-decoration-none">
+                            {{ search.query }} <span class="badge bg-light text-dark">{{ search.count }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <!-- 搜索结果信息 -->
+                    <div class="mt-3">
+                        {% if query %}
+                            <p class="text-muted">搜索 "<strong>{{ query }}</strong>" 找到 {{ total_products }} 个商品</p>
+                        {% else %}
+                            <p class="text-muted">共找到 {{ total_products }} 个商品</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 商品网格 -->
+            <div class="row mt-4">
+                {% for product in page_obj %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100 product-card">
+                        <a href="{% url 'shop:product_detail' product.id product.slug %}">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                                {% compress css %}
+                                <img src="{% static 'images/placeholder.jpg' %}" class="card-img-top" alt="暂无图片" style="height: 200px; object-fit: cover;">
+                                {% endcompress %}
+                            {% endif %}
+                        </a>
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">
+                                <a href="{% url 'shop:product_detail' product.id product.slug %}" class="text-decoration-none text-dark">
+                                    {% if query %}
+                                        {{ product.name|highlight:query|safe }}
+                                    {% else %}
+                                        {{ product.name }}
+                                    {% endif %}
+                                </a>
+                            </h6>
+                            <p class="card-text text-muted small flex-grow-1">
+                                {% if query %}
+                                    {{ product.description|truncatewords:15|highlight:query|safe }}
+                                {% else %}
+                                    {{ product.description|truncatewords:15 }}
+                                {% endif %}
+                            </p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h5 text-primary mb-0">¥{{ product.price }}</span>
+                                    {% if product.stock > 0 %}
+                                        <span class="badge bg-success">有货</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">缺货</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">销量: {{ product.sales }}</small>
+                                    <small class="text-warning">
+                                        <i class="fas fa-star"></i>
+                                        {{ product.rating|default:"0.0" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">没有找到相关商品</h4>
+                    <p class="text-muted">请尝试其他搜索词或调整筛选条件</p>
+
+                    <!-- 智能建议 -->
+                    {% if similar_categories or similar_terms %}
+                    <div class="suggestions mt-4">
+{#                        <h5>建议：</h5>#}
+                        {% if similar_categories %}
+                        <p>相关分类：
+                            {% for category in similar_categories %}
+                            <a href="?category={{ category.id }}" class="btn btn-outline-primary btn-sm me-2" style="color: #1A01CC" >
+                                {{ category.name }}
+                            </a>
+                            {% endfor %}
+                        </p>
+                        {% endif %}
+
+                        {% if similar_terms %}
+                        <p>您是不是要找：
+                            {% for term in similar_terms %}
+                            <a href="?q={{ term|urlencode }}" class="btn btn-outline-secondary btn-sm me-2" style="color: #1A01CC" >
+                                {{ term }}
+                            </a>
+                            {% endfor %}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <a href="{% url 'shop:product_search' %}" class="btn btn-primary mt-3">查看所有商品</a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 分页 -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            {# 只保留了查询关键字，会导致翻页时，所有筛选设置自动重置 #}
+                            {# <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page=1">&laquo; 首页</a>#}
+                            {# 通过{% for key, value in request.GET.items %}遍历当前 URL 中所有参数（如q、category、price_range、in_stock等）。#}
+                            {# 用{% if key != 'page' %}排除page参数（因为分页时需要动态修改page值）。#}
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page=1">&laquo; 首页</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">上一页</a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">下一页</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">末页 &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 自动提交表单当筛选条件改变时
+    $('.form-select, .form-check-input').change(function() {
+        $('#filter-form').submit();
+    });
+
+    // 价格输入框回车提交
+    $('input[type="number"]').keypress(function(e) {
+        if (e.which == 13) {
+            $('#filter-form').submit();
+        }
+    });
+});
+</script>
+{% endblock %}

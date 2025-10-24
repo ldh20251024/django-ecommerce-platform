@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}用户中心 - 我的商店{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group">
+            <a href="#" class="list-group-item list-group-item-action active">用户信息</a>
+            <a href="{% url 'orders:order_list' %}" class="list-group-item list-group-item-action">我的订单</a>
+            <a href="{% url 'accounts:address_list' %}" class="list-group-item list-group-item-action">收货地址</a>
+            <a href="{% url 'accounts:password_change' %}" class="list-group-item list-group-item-action">修改密码</a>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header">
+                <h4>用户信息</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>用户名:</strong> {{ user.username }}</p>
+                        <p><strong>邮箱:</strong> {{ user.email }}</p>
+                        <p><strong>注册时间:</strong> {{ user.date_joined|date:"Y-m-d H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>最后登录:</strong> {{ user.last_login|date:"Y-m-d H:i" }}</p>
+                        <p><strong>姓名:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

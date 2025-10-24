@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}用户登录 - 我的商店{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">用户登录</h4>
+            </div>
+            <div class="card-body">
+                <!-- 修复：添加action和method -->
+                <form method="post" action="{% url 'accounts:login' %}">
+                    {% csrf_token %}
+                    <!-- 添加隐藏字段保存重定向URL -->
+                    <input type="hidden" name="next" value="{{ next_url }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">用户名</label>
+                        <input type="text" name="username" id="username" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">密码</label>
+                        <input type="password" name="password" id="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">登录</button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p>还没有账户? <a href="{% url 'accounts:register' %}">点击注册</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

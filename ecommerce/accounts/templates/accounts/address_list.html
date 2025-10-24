@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-9">
+            <h2 class="mb-4">收货地址管理</h2>
+            <a href="{% url 'accounts:address_add' %}" class="btn btn-primary mb-3">添加新地址</a>
+            {% if addresses %}
+                <div class="card-deck">
+                    {% for address in addresses %}
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="card-title">{{ address.receiver }} <small>{{ address.phone }}</small></h5>
+                                {% if address.is_default %}
+                                    <span class="badge badge-success" style="color: #985f0d">默认地址</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">{{ address.province }}{{ address.city }}{{ address.district }}{{ address.detail }}</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{% url 'accounts:address_edit' address.id %}" class="btn btn-sm btn-warning">编辑</a>
+                                <a href="{% url 'accounts:address_delete' address.id %}" class="btn btn-sm btn-danger">删除</a>
+                                {% if not address.is_default %}
+                                    <a href="{% url 'accounts:set_default_address' address.id %}" class="btn btn-sm btn-info">设为默认</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">您还没有添加收货地址，请点击“添加新地址”按钮创建。</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

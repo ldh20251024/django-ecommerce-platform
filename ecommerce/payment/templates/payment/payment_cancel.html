@@ -1,0 +1,32 @@
+<!-- payment/templates/payment/payment_cancel.html -->
+{% extends "base.html" %}
+
+{% block title %}支付取消 - 订单 #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card">
+                <div class="card-body py-5">
+                    <div class="text-warning mb-4">
+                        <i class="fas fa-times-circle fa-5x"></i>
+                    </div>
+                    <h2 class="card-title mb-3">支付已取消</h2>
+                    <p class="card-text mb-2">您的订单 <strong>#{{ order.id }}</strong> 支付已被取消。</p>
+                    <p class="card-text text-muted">您可以返回订单页面重新选择支付方式。</p>
+
+                    <div class="mt-4">
+                        <a href="{% url 'payment:payment_options' order.id %}" class="btn btn-primary btn-lg">
+                            重新选择支付方式
+                        </a>
+                        <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-outline-secondary">
+                            返回订单详情
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
