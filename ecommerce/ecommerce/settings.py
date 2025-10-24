@@ -148,10 +148,18 @@ CACHES = {
         # 'LOCATION': 'unique-snowflake',
         # 'BACKEND': 'django.core.cache.backends.dummy.DummyCache', # 运行性能监控脚本文件时启用
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
+        # 拼接 Redis 连接 URL（格式：redis://:密码@主机:端口/数据库编号）
+        'LOCATION': f"redis://:{os.environ.get('REDIS_PASSWORD')}@{os.environ.get('REDIS_HOST')}:{os.environ.get('REDIS_PORT')}/0",
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        }
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 5,  # 免费版 Redis 连接数有限，设为 5 即可
+                'retry_on_timeout': True,
+            },
+            # 启用 SSL（第三方 Redis 必须配置，否则连接失败）
+            'SSL': True,
+        },
+        'TIMEOUT': 300,  # 缓存 5 分钟，平衡性能与数据新鲜度
     }
 }
 
