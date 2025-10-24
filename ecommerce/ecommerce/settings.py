@@ -95,7 +95,7 @@ TEMPLATES = [
         },
     },
 ]
-
+import dj_database_url
 # 数据库配置
 # DATABASES = {
 #     'default': {
