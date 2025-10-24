@@ -25,11 +25,10 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     'testserver',  # 添加这行以支持测试
-    # Render 部署后的默认域名（如 your-app.onrender.com）
-    os.environ.get('RENDER_HOST', ''),
 ]
 
 if not DEBUG:
+    # Render 部署后的默认域名（如 your-app.onrender.com）
     # 限制ALLOWED_HOSTS（生产环境仅允许实际域名）
     ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
