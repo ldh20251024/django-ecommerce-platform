@@ -327,7 +327,6 @@ if DEBUG:
 else:
     INSTALLED_APPS += [
         'whitenoise.runserver_nostatic',  # 禁用 Django 自带的开发服务器静态文件服务
-        'django.contrib.staticfiles',
     ]
     # 生产环境仍启用压缩和缓存
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
