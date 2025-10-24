@@ -1,0 +1,29 @@
+/* 在你的 CSS 文件中（如 static/css/style.css） */
+
+/* 外层容器：固定定位，覆盖在页面最上层 */
+.messages-overlay {
+  position: fixed;  /* 脱离文档流，相对于浏览器窗口定位 */
+  top: 20px;        /* 距离顶部 20px */
+  left: 50%;        /* 水平居中（左边缘在页面中间） */
+  transform: translateX(-50%);  /* 向左移动自身一半宽度，实现完全居中 */
+  z-index: 9999;    /* 确保层级最高，覆盖其他所有元素（根据页面调整，足够大即可） */
+  width: auto;      /* 宽度自适应内容 */
+  max-width: 80%;   /* 最大宽度限制，避免过宽 */
+}
+
+/* 消息元素样式：美化并确保间距 */
+.alert {
+  margin-bottom: 10px;  /* 多个消息之间的间距 */
+  padding: 12px 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);  /* 阴影增加层次感 */
+  min-width: 300px;     /* 最小宽度，避免内容过短导致变形 */
+}
+
+/* 自动消失相关样式（之前的动画） */
+.auto-fade {
+    opacity: 1;
+    display: flex;
+    justify-content: center;
+    transition: opacity 0.5s ease-out;
+}

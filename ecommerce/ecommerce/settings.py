@@ -52,10 +52,10 @@ INSTALLED_APPS = [
 # 中间件
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # 添加此行（需在 SecurityMiddleware 之后）
     'django.middleware.gzip.GZipMiddleware',  # 添加GZip压缩
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # 放在SecurityMiddleware, CommonMiddleware 之后，确保静态文件被正确处理
     'django.middleware.csrf.CsrfViewMiddleware',# CSRF 中间件（必须在 Session 之后）
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -203,9 +203,9 @@ USE_I18N = True
 USE_TZ = True
 
 # 静态文件配置
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')] # 指定静态文件的源目录（你存放 CSS/JS/ 图片的地方，如 static/），Django 会从这些目录收集文件。
 STATIC_URL = '/static/'  # 访问静态资源的 URL 前缀
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')  # 静态资源收集的目标目录（绝对路径）
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # 指定静态文件的目标目录（collectstatic 命令会把源目录的文件复制到这里），用于生产环境服务静态文件。
 
 # 导入 Cloudinary 存储后端
 from cloudinary_storage.storage import MediaCloudinaryStorage
@@ -325,6 +325,10 @@ if DEBUG:
     # 禁用压缩和哈希，加快静态资源加载
     STATICFILES_STORAGE = 'whitenoise.storage.WhiteNoiseStorage'
 else:
+    INSTALLED_APPS += [
+        'whitenoise.runserver_nostatic',  # 禁用 Django 自带的开发服务器静态文件服务
+        'django.contrib.staticfiles',
+    ]
     # 生产环境仍启用压缩和缓存
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
