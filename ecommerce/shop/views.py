@@ -10,17 +10,6 @@ from .tasks import  update_search_count
 from django_ratelimit.decorators import ratelimit
 from .forms import ReviewForm
 from django.contrib import messages
-from cloudinary_storage.storage import MediaCloudinaryStorage
-
-def load_cloudinary_image(request):
-    # 为所有旧图绑定存储后端
-    for product in Product.objects.all():
-        if product.image:
-            product.image.storage = MediaCloudinaryStorage()  # 强制关联Cloudinary存储
-            product.save()  # 触发URL重新生成
-
-    return redirect('shop:product_list')
-
 
 # 限制单IP每分钟最多20次搜索请求
 @ratelimit(key='ip', rate='20/m', method='GET', block=True)
