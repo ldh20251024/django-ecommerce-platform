@@ -1,11 +1,11 @@
 from django.db import models
 from django.urls import reverse
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 from django.conf import settings
 # shop/models.py（优化Product.image字段）
 import pypinyin  # 需要安装：pip install pypinyin
-# 导入 CloudinaryField，修改数据库中image的存储类型
-from cloudinary.models import CloudinaryField
+# 导入 MediaCloudinaryStorage
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 
 class Category(models.Model):
@@ -42,21 +42,15 @@ class Product(models.Model):
         default=0.0,
         db_index=True
     )
-    image = CloudinaryField(
-        'image',
-        folder='products/%Y/%m/%d',
-        use_filename=True,
-        overwrite=False,  # 不覆盖现有文件
+    image = models.ImageField(
+        upload_to='products/%Y/%m/%d',
+        storage=MediaCloudinaryStorage(),
+        blank=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png']),  # 仅允许图片格式
+        ],
+        help_text="支持JPG、PNG格式，大小不超过10MB"
     )
-    # image = models.ImageField(
-    #     upload_to='products/%Y/%m/%d',
-    #     storage=MediaCloudinaryStorage(),
-    #     blank=True,
-    #     validators=[
-    #         FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png']),  # 仅允许图片格式
-    #     ],
-    #     help_text="支持JPG、PNG格式，大小不超过10MB"
-    # )
 
     def clean(self):
         """验证图片大小"""
