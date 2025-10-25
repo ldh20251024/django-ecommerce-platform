@@ -209,8 +209,8 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')] # 指定静态文件的源
 STATIC_URL = '/static/'  # 访问静态资源的 URL 前缀
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # 指定静态文件的目标目录（collectstatic 命令会把源目录的文件复制到这里），用于生产环境服务静态文件。
 
-# 导入 Cloudinary 存储后端
-from cloudinary_storage.storage import MediaCloudinaryStorage
+
+
 
 # --------------------------
 # 1. 基础配置：添加 Cloudinary 到 INSTALLED_APPS
@@ -225,6 +225,8 @@ if DEBUG:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # 生产环境（Render）：用 Cloudinary 云存储
 else:
+    # 导入 Cloudinary 存储后端
+    from cloudinary_storage.storage import MediaCloudinaryStorage
     # 配置 Cloudinary 密钥（从环境变量获取）
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),

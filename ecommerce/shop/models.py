@@ -5,6 +5,8 @@ from django.conf import settings
 # shop/models.py（优化Product.image字段）
 from django.core.validators import FileExtensionValidator
 import pypinyin  # 需要安装：pip install pypinyin
+# 导入 Cloudinary 存储后端
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True, db_index=True)
@@ -42,6 +44,7 @@ class Product(models.Model):
     )
     image = models.ImageField(
         upload_to='products/%Y/%m/%d',
+        storage=MediaCloudinaryStorage(),
         blank=True,
         validators=[
             FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png']),  # 仅允许图片格式
