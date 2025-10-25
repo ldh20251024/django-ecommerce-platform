@@ -19,6 +19,8 @@ def load_cloudinary_image(request):
             product.image.storage = MediaCloudinaryStorage()  # 强制关联Cloudinary存储
             product.save()  # 触发URL重新生成
 
+    return redirect('shop:product_list')
+
 
 # 限制单IP每分钟最多20次搜索请求
 @ratelimit(key='ip', rate='20/m', method='GET', block=True)
