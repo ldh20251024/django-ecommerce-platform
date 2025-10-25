@@ -236,7 +236,7 @@ else:
     # 指定媒体文件的存储后端为 Cloudinary
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     # 媒体文件的 URL 前缀（Cloudinary 自动生成）
-    MEDIA_URL = '/media/'  # 无需手动写 Cloudinary 域名，集成包自动处理
+    MEDIA_URL = f'https://res.cloudinary.com/{os.environ.get('CLOUDINARY_CLOUD_NAME')}/image/upload/'
 
 # 登录/登出重定向配置
 LOGIN_REDIRECT_URL = 'accounts:dashboard'  # 默认登录后重定向页面

@@ -11,6 +11,76 @@ from django_ratelimit.decorators import ratelimit
 from .forms import ReviewForm
 from django.contrib import messages
 
+# views.py - 添加迁移管理视图
+from django.contrib.admin.views.decorators import staff_member_required
+from django.http import JsonResponse
+from django.core.management import call_command
+import threading
+
+# 存储迁移状态（在生产环境中应该使用缓存或数据库）
+migration_status = {
+    'running': False,
+    'progress': 0,
+    'current_model': '',
+    'total_models': 0,
+    'errors': []
+}
+
+
+@staff_member_required
+def migration_dashboard(request):
+    """迁移管理仪表板"""
+    return render(request, 'admin/migration_dashboard.html')
+
+
+@staff_member_required
+def start_migration(request):
+    """开始迁移"""
+    global migration_status
+
+    if migration_status['running']:
+        return JsonResponse({'error': '迁移已在运行中'})
+
+    # 在后台线程中运行迁移
+    def run_migration():
+        global migration_status
+        try:
+            migration_status['running'] = True
+            migration_status['errors'] = []
+
+            # 运行迁移命令
+            call_command('migrate_to_cloudinary')
+
+            migration_status['running'] = False
+            migration_status['progress'] = 100
+
+        except Exception as e:
+            migration_status['errors'].append(str(e))
+            migration_status['running'] = False
+
+    thread = threading.Thread(target=run_migration)
+    thread.daemon = True
+    thread.start()
+
+    return JsonResponse({'status': 'started'})
+
+
+@staff_member_required
+def migration_status_view(request):
+    """获取迁移状态"""
+    return JsonResponse(migration_status)
+
+
+@staff_member_required
+def test_cloudinary_connection(request):
+    """测试 Cloudinary 连接"""
+    try:
+        from cloudinary.api import ping
+        result = ping()
+        return JsonResponse({'status': 'success', 'message': 'Cloudinary 连接正常'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
+
 
 # 限制单IP每分钟最多20次搜索请求
 @ratelimit(key='ip', rate='20/m', method='GET', block=True)
