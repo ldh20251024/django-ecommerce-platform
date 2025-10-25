@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
     # 自定义应用
     'accounts',
@@ -213,10 +215,6 @@ from cloudinary_storage.storage import MediaCloudinaryStorage
 # --------------------------
 # 1. 基础配置：添加 Cloudinary 到 INSTALLED_APPS
 # --------------------------
-INSTALLED_APPS += [
-    'cloudinary',
-    'cloudinary_storage',
-]
 
 # --------------------------
 # 2. 媒体文件配置（核心）
