@@ -44,7 +44,10 @@ class Product(models.Model):
     )
     image = CloudinaryField(
         'image',
-        folder = 'products/%Y/%m/%d',
+        folder='products/%Y/%m/%d',
+        use_filename=True,
+        unique_filename=True,  # 如果需要防止文件名冲突
+        overwrite=False,  # 不覆盖现有文件
     )
     # image = models.ImageField(
     #     upload_to='products/%Y/%m/%d',
