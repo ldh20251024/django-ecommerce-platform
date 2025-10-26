@@ -6,10 +6,17 @@
 基于 Django 5.2 开发的全栈电商系统，解决传统电商「搜索慢、筛选体验差、库存超卖」等痛点，支持商品浏览、多条件搜索、购物车、订单管理等核心功能。
 
 ## 技术栈
-- 后端：Django 5.2 + PostGreSQL + Redis（缓存）
-- 前端：HTML5 + CSS3 + JavaScript + bootstrap
+- 后端：Django 5.2 + PostGreSQL + Redis（缓存）+ Cloudinary（云存储）
+- 前端：HTML5 + CSS3 + JavaScript + Bootstrap
 - 部署：Render（在线演示：https://django-ecommerce-demo.onrender.com）
-- 性能优化：prefetch_related 解决 N+1 查询、Redis 缓存热门商品、SQL 聚合查询减少重复请求
+- 性能优化：
+- 1、运用django-silk性能分析工具，记录 Django 应用中每一次请求的代码执行耗时、函数调用链路、数据库查询效率等详细性能数据，
+- 帮助定位性能瓶颈，并且通过prefetch_related、select_related、SQL聚合查询等措施解决N+1查询与重复查询等性能问题；
+- 2、运用Redis缓存热门商品。减少频繁请求数据库的损耗
+- 安全加固：
+- 1、密码加密加固：注册时自动加密明文密码
+- 2、配置信息非硬编码：重要的配置信息均从环境变量获取，避免硬编码。防止泄露
+- 3、启用https保障网络数据传输的安全与可信度，解决 HTTP 协议 “明文传输、无身份验证、数据易篡改” 的三大安全缺陷
 
 ## 核心功能
 1. **商品模块**：分类导航、商品详情、用户评论
