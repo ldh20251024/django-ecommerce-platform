@@ -163,7 +163,7 @@ CACHES = {
 }
 
 # Celery 配置（若使用 Redis 作为 broker）
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"  # 确保与 Redis 实际端口一致
+CELERY_BROKER_URL = f"redis://:{os.environ.get('REDIS_PASSWORD')}@{os.environ.get('REDIS_HOST')}:{os.environ.get('REDIS_PORT')}/0"  # 确保与 Redis 实际端口一致
 
 # Session 配置优化
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
