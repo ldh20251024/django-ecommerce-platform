@@ -11,8 +11,8 @@ class UserRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = User
+        # fields定义要存到数据库中的字段值
         fields = ('username', 'email', 'first_name', 'last_name', 'password')
-
     # 重写clean方法，合并唯一性检查（关键优化）
     def clean(self):
         cleaned_data = super().clean()
@@ -41,6 +41,9 @@ class UserRegistrationForm(forms.ModelForm):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"]
         if commit:
+            # 如果继承普通的ModelForm而非UserCreationForm
+            # 亦或者重写save方法都必须执行set_password，否则密码将不会被加密
+            user.set_password(self.cleaned_data["password"])
             user.save()
         return user
 
