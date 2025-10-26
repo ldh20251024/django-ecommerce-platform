@@ -11,7 +11,7 @@ class UserRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name')
+        fields = ('username', 'email', 'first_name', 'last_name', 'password')
 
     # 重写clean方法，合并唯一性检查（关键优化）
     def clean(self):
