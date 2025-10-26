@@ -25,6 +25,12 @@ def product_search(request):
     # 搜索处理
     query = request.GET.get('q', '').strip()
     if query:
+        search_query, created = SearchQuery.objects.get_or_create(query = query)
+        if created:
+            search_query.save()
+        else:
+            search_query.count += 1
+            search_query.save()
         products = products.filter(
             Q(name__icontains=query) |
             Q(description__icontains=query) |
