@@ -47,7 +47,7 @@
                             <form method="post" action="{% url 'cart:cart_update' item.product.id %}" class="d-flex align-items-center">
                                 {% csrf_token %}
                                 <input type="number" name="quantity" value="{{ item.quantity }}"
-                                       min="1" max="{{ item.product.stock }}" oninput="validateQuantity(this,{{ item.product.stock }})" pattern="[0-9]*"  class="form-control form-control-sm" style="width: 80px;">
+                                       min="1" max="{{ item.product.stock }}" oninput="validateQuantity(this,{{ item.product.stock }}, {{ item.product.id }})" pattern="[0-9]*"  class="form-control form-control-sm" style="width: 80px;">
                                 <!-- Toast 容器 -->
                                 <div class="toast-container position-fixed top-0 end-0 p-3">
                                     <div id="validationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -60,7 +60,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button id="update_btn"  type="submit" class="btn btn-sm btn-outline-primary ms-2">更新</button>
+                                <button id="update_btn{{ item.product.id }}"  type="submit" class="btn btn-sm btn-outline-primary ms-2">更新</button>
                             </form>
                         </td>
                         <td class="align-middle">¥{{ item.get_total_price }}</td>
@@ -107,13 +107,13 @@
     {% endif %}
 </div>
 <script>
-    function validateQuantity(input, stock) {
+    function validateQuantity(input, stock, id) {
         // 移除非数字字符
         input.value = input.value.replace(/[^0-9]/g, '');
         // 清除样式
         input.classList.remove('is-valid', 'is-invalid');
 
-        const button = document.getElementById('update_btn');
+        const button = document.getElementById('update_btn'+id);
         // 检查是否为空
         if (input.value === '') {
             showToast('请输入数量', 'warning');
