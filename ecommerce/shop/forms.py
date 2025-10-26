@@ -25,6 +25,7 @@ ALLOWED_ATTRIBUTES = {}  # 不允许任何属性（如onclick）
 
 
 class ReviewForm(forms.ModelForm):
+    print("text:",forms.Textarea(attrs={'rows' : 4}))
     class Meta:
         model = Review
         fields = ['rating', 'comment']
@@ -35,6 +36,8 @@ class ReviewForm(forms.ModelForm):
     def clean_comment(self):
         """清洗评论内容，过滤XSS脚本"""
         comment = self.cleaned_data.get('comment', '')
+        if not comment or comment.strip() == '':
+            raise forms.ValidationError("评论内容不能为空！")  # 错误提示
         return bleach.clean(
             comment,
             tags=ALLOWED_TAGS,
